@@ -1,0 +1,213 @@
+#FROM python:alpine3.11
+from ubuntu:20.04
+MAINTAINER Marcelo Cajamarca <marcelocaj@gmail.com>
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+#RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
+#	apt-get update && apt-get install -y tzdata && \
+#	dpkg-reconfigure --frontend noninteractive tzdata
+
+RUN	apt-get update && apt-get install -y make wget tar gcc perl musl-dev yasm git mingw-w64 win-iconv-mingw-w64-dev
+#	libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev git libva-dev libvdpau-dev yasm libxext-dev
+
+
+ENV LIBSPREFIX /home/user
+
+
+#RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
+#	tar xvzf ortp-0.23.0.tar.gz && \
+#	cd ortp-0.23.0 && \
+#	./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static \
+#	--host=x86_64-w64-mingw32 \
+#    	CXX='x86_64-w64-mingw32-g++' \
+#    	CC='x86_64-w64-mingw32-gcc' \
+#	WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+#	make -j5 CFLAGS="-Wno-error=format-truncation" && \
+#	make install
+
+
+#WINDRES='x86_64-w64-mingw32-windres -F pe-i386' && \
+
+RUN wget http://curl.haxx.se/download/curl-7.37.0.tar.bz2 && \
+        tar xvjf curl-7.37.0.tar.bz2 && \
+        cd curl-7.37.0 && \
+        ./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static \
+        --without-ssh2 --disable-ftp --disable-telnet --disable-tftp --disable-pop3 \
+        --disable-imap --disable-smtp --disable-gopher --disable-manual --disable-dict \
+        --disable-ldap --disable-ldaps --without-ssl \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+        make -j5 && \
+        make install
+
+
+RUN wget https://www.openssl.org/source/openssl-1.0.1u.tar.gz && \
+        tar xvzf openssl-1.0.1u.tar.gz && \
+        cd openssl-1.0.1u && \
+        ./Configure --prefix=${LIBSPREFIX} --openssldir=${LIBSPREFIX} no-shared no-hw no-engines \
+	mingw64 --cross-compile-prefix=x86_64-w64-mingw32- && \
+        make depend && \
+        make && \
+        make install
+
+#mingw --cross-compile-prefix=i686-w64-mingw32- && \
+
+COPY libbitstream_cpp_datetime.patch /libbitstream_cpp_datetime.patch
+RUN wget http://download.videolan.org/pub/videolan/bitstream/1.0/bitstream-1.0.tar.bz2 && \
+        tar xvjf bitstream-1.0.tar.bz2 && \
+        cd bitstream-1.0 && \
+	patch -p0 < /libbitstream_cpp_datetime.patch && \
+        make PREFIX=${LIBSPREFIX} install
+
+
+RUN wget https://src.fedoraproject.org/lookaside/extras/libconfig/libconfig-1.4.9.tar.gz/b6ee0ce2b3ef844bad7cac2803a90634/libconfig-1.4.9.tar.gz && \
+        tar xvzf libconfig-1.4.9.tar.gz && \
+        cd libconfig-1.4.9 && \
+        ./configure --prefix=${LIBSPREFIX} --enable-static --disable-examples \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+        make -j5 && \
+        make install
+
+
+RUN wget http://download.videolan.org/pub/videolan/libdvbcsa/1.1.0/libdvbcsa-1.1.0.tar.gz && \
+	tar xvzf libdvbcsa-1.1.0.tar.gz && \
+	cd libdvbcsa-1.1.0 && \
+        ./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+        make -j5 && \
+        make install
+
+RUN apt-get update && apt-get install cmake -y
+
+#RUN wget http://libsdl.org/release/SDL2-2.0.3.tar.gz && \
+#        tar xvzf SDL2-2.0.3.tar.gz && \
+#        cd SDL2-2.0.3 && \
+#        ./configure --disable-shared --enable-static \
+#        --host=x86_64-w64-mingw32 \
+#        CXX='x86_64-w64-mingw32-g++' \
+#        CC='x86_64-w64-mingw32-gcc' \
+#        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+#        make -j5 && \
+#        make install
+
+RUN wget https://libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz && \
+	tar xvzf SDL2-devel-2.0.3-mingw.tar.gz && \
+	cd SDL2-2.0.3 && \
+        make install-package arch=x86_64-w64-mingw32 prefix=${LIBSPREFIX}
+#	 make install-package arch=i686-w64-mingw32 prefix=${LIBSPREFIX}
+
+RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
+        tar xvzf SDL2_gfx-1.0.0.tar.gz && \
+        cd SDL2_gfx-1.0.0 && \
+        ./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static --disable-sdltest --disable-mmx --with-sdl-prefix=${LIBSPREFIX} \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+        make -j5 && \
+        make install
+
+
+#RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.tar.gz && \
+#       tar xvzf SDL2_ttf-2.0.12.tar.gz && \
+#       cd SDL2_ttf-2.0.12 && \
+#       ./configure --disable-shared --enable-static --with-freetype-prefix=${LIBSPREFIX} \
+#        --host=x86_64-w64-mingw32 \
+#        CXX='x86_64-w64-mingw32-g++' \
+#        CC='x86_64-w64-mingw32-gcc' \
+#        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+#       make -j5 && \
+#       make install
+
+RUN wget https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.12-mingw.tar.gz && \
+	tar xvzf SDL2_ttf-devel-2.0.12-mingw.tar.gz && \
+	cd SDL2_ttf-2.0.12 && \
+	make install-package arch=x86_64-w64-mingw32 prefix=${LIBSPREFIX}
+	#make native
+
+COPY libav-10.1_sign-warnings.patch /
+RUN apt-get install -y xz-utils
+RUN wget https://libav.org/releases/libav-10.1.tar.xz && \
+	ls -l && tar xvJf libav-10.1.tar.xz && \
+	cd libav-10.1 && \
+	patch -p0 < /libav-10.1_sign-warnings.patch && \
+./configure --prefix=${LIBSPREFIX} --enable-nonfree --disable-w32threads \
+--enable-dxva2  --disable-swscale \
+--disable-avfilter --disable-avdevice --disable-everything --enable-decoder=ac3 \
+--enable-decoder=eac3 --enable-decoder=mp2 --enable-decoder=mp2float \
+--enable-decoder=h264 --enable-decoder=mpeg2video --enable-demuxer=mpegts \
+--enable-parser=ac3 --enable-parser=mpegaudio \
+--enable-hwaccel=h264_dxva2 --enable-hwaccel=mpeg2_dxva2 \
+--enable-hwaccel=h264_vaapi --enable-hwaccel=mpeg2_vaapi \
+--enable-hwaccel=h264_vdpau --enable-hwaccel=mpeg2_vdpau && \
+make -j5 && \
+make install
+
+
+RUN wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.bz2 && \
+tar xvjf freetype-2.5.3.tar.bz2 && \
+cd freetype-2.5.3 && \
+./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static --without-png \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+make -j5 && \
+make install
+
+RUN apt-get install -y pkg-config
+
+COPY libortp_mingw.patch /libortp_mingw.patch
+COPY avprofile.c /avprofile.c
+COPY payloadtype.h /payloadtype.h
+COPY rtpprofile.h /rtpprofile.h
+
+RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
+       	tar xvzf ortp-0.23.0.tar.gz && \
+	cd ortp-0.23.0 && \
+	patch -p0 < /libortp_mingw.patch && \
+	cp /payloadtype.h include/ortp/payloadtype.h && \
+        cp /rtpprofile.h include/ortp/rtpprofile.h && \
+        ./configure --prefix=${LIBSPREFIX} --disable-shared --enable-static \
+        --host=x86_64-w64-mingw32 \
+        CXX='x86_64-w64-mingw32-g++' \
+        CC='x86_64-w64-mingw32-gcc' \
+        WINDRES='x86_64-w64-mingw32-windres -F pe-x86-64' && \
+        make -j5 CFLAGS="-Wno-error=format-truncation" && \
+        make install
+
+
+
+RUN apt-get install -y mingw-w64-tools dpkg-dev
+RUN cd /libav-10.1 && \
+make uninstall && make clean && \
+./configure --prefix=${LIBSPREFIX} --enable-nonfree --disable-w32threads \
+--target-os=mingw32 \
+--arch=x86_64 \
+--cross-prefix=x86_64-w64-mingw32- \
+--enable-dxva2  --disable-swscale \
+--disable-avfilter --disable-avdevice --disable-everything --enable-decoder=ac3 \
+--enable-decoder=eac3 --enable-decoder=mp2 --enable-decoder=mp2float \
+--enable-decoder=h264 --enable-decoder=mpeg2video --enable-demuxer=mpegts \
+--enable-parser=ac3 --enable-parser=mpegaudio \
+--enable-hwaccel=h264_dxva2 --enable-hwaccel=mpeg2_dxva2 \
+--enable-hwaccel=h264_vaapi --enable-hwaccel=mpeg2_vaapi \
+--enable-hwaccel=h264_vdpau --enable-hwaccel=mpeg2_vdpau && \
+make -j5 && \
+make install
+
+
+COPY entrypoint.sh /entrypoint.sh
+COPY credentials-helper.sh /credentials-helper.sh
+
+RUN chmod +x /entrypoint.sh && chmod +x /credentials-helper.sh
+

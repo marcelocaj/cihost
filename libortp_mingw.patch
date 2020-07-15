@@ -1,0 +1,39 @@
+diff -d -u -r include/ortp/port.h include/ortp/port.h
+--- include/ortp/port.h	2013-11-06 21:39:34.000000000 +0100
++++ include/ortp/port.h	2014-09-03 19:23:34.993790793 +0200
+@@ -146,7 +146,6 @@
+ #include <stdint.h> /*provided by mingw32*/
+ #include <io.h>
+ #define ORTP_PUBLIC
+-ORTP_PUBLIC char* strtok_r(char *str, const char *delim, char **nextp);
+ #endif
+ 
+ #define vsnprintf	_vsnprintf
+diff -d -u -r src/port.c src/port.c
+--- src/port.c	2014-02-11 17:24:15.000000000 +0100
++++ src/port.c	2014-09-03 19:23:40.489790620 +0200
+@@ -746,24 +746,3 @@
+ 	ret->tv_nsec=ts.tv_nsec;
+ #endif
+ }
+-
+-#if defined(_WIN32) && !defined(_MSC_VER)
+-char* strtok_r(char *str, const char *delim, char **nextp){
+-	char *ret;
+-
+-	if (str == NULL){
+-		str = *nextp;
+-	}
+-	str += strspn(str, delim);
+-	if (*str == '\0'){
+-		return NULL;
+-	}
+-	ret = str;
+-	str += strcspn(str, delim);
+-	if (*str){
+-		*str++ = '\0';
+-	}
+-	*nextp = str;
+-	return ret;
+-}
+-#endif
