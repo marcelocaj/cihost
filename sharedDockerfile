@@ -1,5 +1,5 @@
 FROM python:alpine3.11
-from ubuntu:16.04
+from ubuntu:14.04
 MAINTAINER Marcelo Cajamarca <marcelocaj@gmail.com>
 
 # add user and group for artemis
@@ -11,27 +11,27 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV LIBS_PREFIX=/usr/local
 
-RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
-	apt-get update && apt-get install -y tzdata && \
-	dpkg-reconfigure --frontend noninteractive tzdata
+#RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
+#	apt-get update && apt-get install -y tzdata && \
+#	dpkg-reconfigure --frontend noninteractive tzdata
 
 #RUN	apt-get update && apt-get install -y make wget tar gcc perl musl-dev \
 #	libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev git libva-dev libvdpau-dev yasm libxext-dev cmake
 
-RUN apt-get update && apt-get install -y wget tar gcc git libbitstream-dev libconfig++-dev openjdk-8-jre libssl-dev libdvbcsa-dev cmake yasm  python3
+RUN apt-get update && apt-get install -y wget tar gcc git libbitstream-dev libconfig++-dev openjdk-7-jre libssl-dev libdvbcsa-dev cmake yasm  python3
 #libcurl4-openssl-dev
 
 RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
 	tar xvzf ortp-0.23.0.tar.gz && \
 	cd ortp-0.23.0 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static && \
-	make -j5 && \
+	./configure --prefix=${LIBS_PREFIX} --enable-shared && \
+	make -j5  && \
 	make install
-
+#CFLAGS="-Wno-error=format-truncation"
 RUN wget http://curl.haxx.se/download/curl-7.37.0.tar.bz2 && \
 	tar xvjf curl-7.37.0.tar.bz2 && \
 	cd curl-7.37.0 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static \
+	./configure --prefix=${LIBS_PREFIX} --enable-shared \
 	--without-ssh2 --disable-ftp --disable-telnet --disable-tftp --disable-pop3 \
 	--disable-imap --disable-smtp --disable-gopher --disable-manual --disable-dict \
 	--disable-ldap --disable-ldaps --without-ssl && \
@@ -51,7 +51,7 @@ RUN wget http://curl.haxx.se/download/curl-7.37.0.tar.bz2 && \
 RUN wget http://download.videolan.org/pub/videolan/libdvbcsa/1.1.0/libdvbcsa-1.1.0.tar.gz && \
 	tar xvzf libdvbcsa-1.1.0.tar.gz && \
 	cd libdvbcsa-1.1.0 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static && \
+	./configure --prefix=${LIBS_PREFIX} --enable-shared && \
 	make -j5 && \
 	make install 
 
@@ -103,18 +103,18 @@ RUN apt-get update && apt-get -y install libglib2.0 libxext-dev
 #	make -j5 && \
 #	make install
 
-RUN wget http://libsdl.org/release/SDL2-2.0.3.tar.gz && \
-	tar xvzf SDL2-2.0.3.tar.gz && \
-	cd SDL2-2.0.3 && \
-	./configure --disable-shared --enable-static && \
+RUN wget http://libsdl.org/release/SDL2-2.0.10.tar.gz && \
+	tar xvzf SDL2-2.0.10.tar.gz && \
+	cd SDL2-2.0.10 && \
+	./configure --enable-sharedx && \
 	make -j5 && \
 	make install
 
 
-RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
-	tar xvzf SDL2_gfx-1.0.0.tar.gz && \
-	cd SDL2_gfx-1.0.0 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --disable-sdltest --disable-mmx && \
+RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.1.tar.gz && \
+	tar xvzf SDL2_gfx-1.0.1.tar.gz && \
+	cd SDL2_gfx-1.0.1 && \
+	./configure --prefix=${LIBS_PREFIX} --enable-shared --disable-static --disable-sdltest --disable-mmx && \
 	make -j5 && \
 	make install
 
@@ -123,16 +123,17 @@ RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
 RUN wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.bz2 && \
 	tar xvjf freetype-2.5.3.tar.bz2 && \
 	cd freetype-2.5.3 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --without-png && \
+	./configure --prefix=${LIBS_PREFIX} --enable-shared --disable-static --without-png && \
 	make -j5 && \
 	make install
 
 
 #RUN ln -s /usr/bin/freetype-config /usr/local/bin/freetype-config
-RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.tar.gz && \
-       tar xvzf SDL2_ttf-2.0.12.tar.gz && \
-       cd SDL2_ttf-2.0.12 && \
-       ./configure --disable-shared --enable-static --with-freetype-prefix=${LIBS_PREFIX} && \
+RUN apt-get install -y libgl1-mesa-dev
+RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.tar.gz && \
+       tar xvzf SDL2_ttf-2.0.14.tar.gz && \
+       cd SDL2_ttf-2.0.14 && \
+       ./configure --enable-shared --disable-static --with-freetype-prefix=${LIBS_PREFIX} && \
        make -j5 && \
        make install
 
@@ -154,14 +155,14 @@ RUN wget http://download.videolan.org/pub/videolan/bitstream/1.0/bitstream-1.0.t
 #RUN wget http://www.hyperrealm.com/libconfig/libconfig-1.4.9.tar.gz && \
 
 #RUN apt-get install -y libkrb5-dev libldap2-dev
-RUN apt-get install -y libidn11-dev
-RUN apt-get remove -y libconfig++-dev
-RUN wget https://src.fedoraproject.org/lookaside/extras/libconfig/libconfig-1.4.9.tar.gz/b6ee0ce2b3ef844bad7cac2803a90634/libconfig-1.4.9.tar.gz && \
-	tar xvzf libconfig-1.4.9.tar.gz && \
-	cd libconfig-1.4.9 && \
-	./configure --prefix=${LIBS_PREFIX} --enable-static --disable-examples && \
-	make -j5 && \
-	make install
+RUN apt-get install -y libidn11-dev g++
+#RUN apt-get remove -y libconfig++-dev
+#RUN wget https://src.fedoraproject.org/lookaside/extras/libconfig/libconfig-1.4.9.tar.gz/b6ee0ce2b3ef844bad7cac2803a90634/libconfig-1.4.9.tar.gz && \
+#	tar xvzf libconfig-1.4.9.tar.gz && \
+#	cd libconfig-1.4.9 && \
+#	./configure --prefix=${LIBS_PREFIX} --enable-shared --disable-static --disable-examples && \
+#	make -j5 && \
+#	make install
 
 COPY entrypoint.sh /
 COPY credentials-helper.sh /
@@ -178,30 +179,33 @@ RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev mesa-comm
 
 COPY gitmodulePluginBad /gitmodulePluginBad
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gstreamer.git && \
-	cd gstreamer && \
-	cp /gitmodulePluginBad ./.gitmodules && \
-	git submodule sync && \
-	./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
-	make -j5 && \
-	make install
+#RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gstreamer.git && \
+#	cd gstreamer && \
+#	cp /gitmodulePluginBad ./.gitmodules && \
+#	git submodule sync && \
+#	./autogen.sh --disable-gtk-doc --enable-shared --prefix=${LIBS_PREFIX} && \
+#	make -j5 && \
+#	make install
 
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-base.git && \
-        cd gst-plugins-base && \
-        cp /gitmodulePluginBad ./.gitmodules && \
-        git submodule sync && \
-        ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
-        make -j5 && \
-        make install
+#RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-base.git && \
+#        cd gst-plugins-base && \
+#        cp /gitmodulePluginBad ./.gitmodules && \
+#        git submodule sync && \
+#        ./autogen.sh --disable-gtk-doc --enable-shared --prefix=${LIBS_PREFIX} && \
+#        make -j5 && \
+#        make install
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-good.git && \
-        cd gst-plugins-good && \
-        cp /gitmodulePluginBad ./.gitmodules && \
-        git submodule sync && \
-        ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
-        make -j5 && \
-        make install
+RUN apt-get remove -y openjdk-7-jre && \
+cd /curl-7.37.0 && make uninstall && \
+apt-get install -y g++ libgstreamer-plugins-bad1.0-dev gstreamer1.0-vaapi libgl1-mesa-dev libcurl4-openssl-dev libgstreamer-vaapi1.0-dev
+#RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-good.git && \
+#        cd gst-plugins-good && \
+#        cp /gitmodulePluginBad ./.gitmodules && \
+#        git submodule sync && \
+#        ./autogen.sh --disable-gtk-doc --enable-shared --prefix=${LIBS_PREFIX} && \
+#        make -j5 && \
+#        make install
 
 #RUN git clone --single-branch --branch 1.2 https://gitlab.freedesktop.org/gstreamer/gst-plugins-ugly.git && \
 #        cd gst-plugins-ugly && \
@@ -217,14 +221,14 @@ RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstrea
 
 COPY gitmodulePluginBad /gitmodulePluginBad
 
-RUN apt-get install -y libglu1-mesa-dev libudev-dev
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad.git && \
-        cd gst-plugins-bad && \
-	cp /gitmodulePluginBad ./.gitmodules && \
-	git submodule sync && \
-        ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
-        make -j5 CFLAGS+="-Wno-error -Wno-redundant-decls" CXXFLAGS+="-Wno-redundant-decls" && \
-        make install
+#RUN apt-get install -y libglu1-mesa-dev libudev-dev
+#RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad.git && \
+#        cd gst-plugins-bad && \
+#	cp /gitmodulePluginBad ./.gitmodules && \
+#	git submodule sync && \
+#        ./autogen.sh --disable-gtk-doc --enable-shared --prefix=${LIBS_PREFIX} && \
+#        make -j5 CFLAGS+="-Wno-error -Wno-redundant-decls" CXXFLAGS+="-Wno-redundant-decls" && \
+#        make install
 
 
 
@@ -238,14 +242,14 @@ COPY gitmodules /gitmodules
 
 #RUN apt-get install -y libva-dev
 
-RUN git clone --single-branch --branch 1.6 https://github.com/GStreamer/gstreamer-vaapi.git && \
-	cd gstreamer-vaapi && \
-	cp /gitmodulePluginBad ./.gitmodules && \
+#RUN git clone --single-branch --branch 1.6 https://github.com/GStreamer/gstreamer-vaapi.git && \
+#	cd gstreamer-vaapi && \
+#	cp /gitmodulePluginBad ./.gitmodules && \
 #	git checkout -b cihost 7ac501d0 && \
 #	cp /gitmodules .gitmodules && \
-	git submodule sync 
+#	git submodule sync  && \
 #&& \
-#	./autogen.sh --prefix=${LIBS_PREFIX} --enable-static --disable-gtk-doc && \
+#	./autogen.sh --prefix=${LIBS_PREFIX} --enable-shared --disable-gtk-doc && \
 #	make -j5 && \
 #	make install
 

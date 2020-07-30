@@ -55,9 +55,8 @@ RUN wget http://download.videolan.org/pub/videolan/libdvbcsa/1.1.0/libdvbcsa-1.1
 	make -j5 && \
 	make install 
 
-RUN apt-get update && apt-get -y install libglib2.0 libxext-dev
-#\
-#	libfreetype6-dev libxext-dev
+RUN apt-get update && apt-get -y install libglib2.0 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+	libvdpau-dev gstreamer1.0-plugins-bad libfreetype6-dev libxext-dev
 
 
 #RUN wget http://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-1.2.1.tar.xz && \
@@ -110,6 +109,10 @@ RUN wget http://libsdl.org/release/SDL2-2.0.3.tar.gz && \
 	make -j5 && \
 	make install
 
+#RUN wget https://libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz && \
+#	tar xvzf SDL2-devel-2.0.3-mingw.tar.gz && \
+#	cd SDL2-2.0.3 && \
+#	make native
 
 RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
 	tar xvzf SDL2_gfx-1.0.0.tar.gz && \
@@ -119,16 +122,16 @@ RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
 	make install
 
 
-#RUN apt-get remove -y libfreetype6-dev
-RUN wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.bz2 && \
-	tar xvjf freetype-2.5.3.tar.bz2 && \
-	cd freetype-2.5.3 && \
-	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --without-png && \
-	make -j5 && \
-	make install
+
+#RUN wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.bz2 && \
+#	tar xvjf freetype-2.5.3.tar.bz2 && \
+#	cd freetype-2.5.3 && \
+#	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --without-png && \
+#	make -j5 && \
+#	make install
 
 
-#RUN ln -s /usr/bin/freetype-config /usr/local/bin/freetype-config
+RUN ln -s /usr/bin/freetype-config /usr/local/bin/freetype-config
 RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.tar.gz && \
        tar xvzf SDL2_ttf-2.0.12.tar.gz && \
        cd SDL2_ttf-2.0.12 && \
@@ -168,7 +171,7 @@ COPY credentials-helper.sh /
 RUN chmod +x /entrypoint.sh && chmod +x /credentials-helper.sh
 
 
-RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev mesa-common-dev gettext
+RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev
 #RUN git clone https://github.com/GStreamer/gstreamer-vaapi.git && \
 #       cd gstreamer-vaapi && \
 #       git checkout -b cihost 7ac501d0
@@ -176,38 +179,32 @@ RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev mesa-comm
 #       make -j5 && \
 #       make install
 
-COPY gitmodulePluginBad /gitmodulePluginBad
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gstreamer.git && \
+
+RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gstreamer.git && \
 	cd gstreamer && \
-	cp /gitmodulePluginBad ./.gitmodules && \
-	git submodule sync && \
 	./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
 	make -j5 && \
 	make install
 
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-base.git && \
+RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gst-plugins-base.git && \
         cd gst-plugins-base && \
-        cp /gitmodulePluginBad ./.gitmodules && \
-        git submodule sync && \
         ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
         make -j5 && \
         make install
 
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-good.git && \
+RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gst-plugins-good.git && \
         cd gst-plugins-good && \
-        cp /gitmodulePluginBad ./.gitmodules && \
-        git submodule sync && \
         ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
         make -j5 && \
         make install
 
-#RUN git clone --single-branch --branch 1.2 https://gitlab.freedesktop.org/gstreamer/gst-plugins-ugly.git && \
-#        cd gst-plugins-ugly && \
-#        ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
-#        make -j5 && \
-#        make install
+RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gst-plugins-ugly.git && \
+        cd gst-plugins-ugly && \
+        ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
+        make -j5 && \
+        make install
 
 #RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gst-libav.git && \
 #        cd gst-libav && \
@@ -215,13 +212,9 @@ RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstrea
 #        make -j5 CFLAGS+="-fPIC" CXXFLAGS+="-Wno-redundant-decls" && \
 #        make install
 
-COPY gitmodulePluginBad /gitmodulePluginBad
 
-RUN apt-get install -y libglu1-mesa-dev libudev-dev
-RUN git clone --single-branch --branch 1.6 https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad.git && \
+RUN git clone --single-branch --branch 1.0 https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad.git && \
         cd gst-plugins-bad && \
-	cp /gitmodulePluginBad ./.gitmodules && \
-	git submodule sync && \
         ./autogen.sh --disable-gtk-doc --enable-static --prefix=${LIBS_PREFIX} && \
         make -j5 CFLAGS+="-Wno-error -Wno-redundant-decls" CXXFLAGS+="-Wno-redundant-decls" && \
         make install
@@ -238,14 +231,12 @@ COPY gitmodules /gitmodules
 
 #RUN apt-get install -y libva-dev
 
-RUN git clone --single-branch --branch 1.6 https://github.com/GStreamer/gstreamer-vaapi.git && \
+RUN git clone https://github.com/GStreamer/gstreamer-vaapi.git && \
 	cd gstreamer-vaapi && \
-	cp /gitmodulePluginBad ./.gitmodules && \
-#	git checkout -b cihost 7ac501d0 && \
-#	cp /gitmodules .gitmodules && \
-	git submodule sync 
-#&& \
-#	./autogen.sh --prefix=${LIBS_PREFIX} --enable-static --disable-gtk-doc && \
-#	make -j5 && \
-#	make install
+	git checkout -b cihost 7ac501d0 && \
+	cp /gitmodules .gitmodules && \
+	git submodule sync && \
+	./autogen.sh --prefix=${LIBS_PREFIX} --enable-static && \
+	make -j5 && \
+	make install
 

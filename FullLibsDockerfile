@@ -1,0 +1,160 @@
+FROM python:alpine3.11
+from ubuntu:20.04
+MAINTAINER Marcelo Cajamarca <marcelocaj@gmail.com>
+
+# add user and group for artemis
+#RUN addgroup -S artemis && adduser -S -G artemis artemis
+
+#RUN apk add make wget tar gcc musl-dev perl glib glib-static
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV LIBS_PREFIX=/home/user
+
+RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
+	apt-get update && apt-get install -y tzdata && \
+	dpkg-reconfigure --frontend noninteractive tzdata
+
+#RUN	apt-get update && apt-get install -y make wget tar gcc perl musl-dev \
+#	libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev git libva-dev libvdpau-dev yasm libxext-dev cmake
+
+RUN apt-get update && apt-get install -y wget tar gcc git libbitstream-dev libconfig++-dev openjdk-8-jre libssl-dev libdvbcsa-dev cmake yasm 
+
+RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
+	tar xvzf ortp-0.23.0.tar.gz && \
+	cd ortp-0.23.0 && \
+	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static && \
+	make -j5 CFLAGS="-Wno-error=format-truncation" && \
+	make install
+
+RUN wget http://curl.haxx.se/download/curl-7.37.0.tar.bz2 && \
+	tar xvjf curl-7.37.0.tar.bz2 && \
+	cd curl-7.37.0 && \
+	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static \
+	--without-ssh2 --disable-ftp --disable-telnet --disable-tftp --disable-pop3 \
+	--disable-imap --disable-smtp --disable-gopher --disable-manual --disable-dict \
+	--disable-ldap --disable-ldaps --without-ssl && \
+	make -j5 && \
+	make install
+
+
+#RUN wget https://www.openssl.org/source/openssl-1.0.1u.tar.gz && \
+#	tar xvzf openssl-1.0.1u.tar.gz && \
+#	cd openssl-1.0.1u && \
+#	./config --prefix=${LIBS_PREFIX} --openssldir=${LIBS_PREFIX} no-shared no-hw no-engines && \
+#	make depend && \
+#	make && \
+#	make install 
+
+
+RUN wget http://download.videolan.org/pub/videolan/libdvbcsa/1.1.0/libdvbcsa-1.1.0.tar.gz && \
+	tar xvzf libdvbcsa-1.1.0.tar.gz && \
+	cd libdvbcsa-1.1.0 && \
+	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static && \
+	make -j5 && \
+	make install 
+
+
+RUN wget http://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-1.2.1.tar.xz && \
+	tar xvJf gst-plugins-bad-1.2.1.tar.xz && \
+	cd gst-plugins-bad-1.2.1 && \
+	./configure --prefix=${LIBS_PREFIX} --libdir=${LIBS_PREFIX}/lib/x86_64-linux-gnu && \
+	make -j5 && \
+	make install
+
+#RUN git clone https://github.com/GStreamer/gstreamer-vaapi.git && \
+#	cd gstreamer-vaapi && \
+#	git checkout -b cihost 7ac501d0
+
+#RUN cd gstreamer-vaapi && \
+#	./autogen.sh --prefix=/home && \
+#	make -j5 && \
+#	make install
+
+#COPY libva-vdpau-driver-0.7.4.tar.bz2 /
+#RUN	tar xvjf libva-vdpau-driver-0.7.4.tar.bz2 && \
+#	cd libva-vdpau-driver-0.7.4 && \
+#	./configure && \
+#	make -j5 && \
+#	make install
+
+COPY libav-10.1_sign-warnings.patch /
+
+RUN wget https://libav.org/releases/libav-10.1.tar.xz && \
+	tar xvJf libav-10.1.tar.xz && \
+	cd libav-10.1 && \
+	patch -p0 < /libav-10.1_sign-warnings.patch && \
+	./configure --prefix=${LIBS_PREFIX} --enable-nonfree --disable-w32threads \
+--enable-dxva2 --enable-vaapi --enable-vdpau --disable-swscale \
+--disable-avfilter --disable-avdevice --disable-everything --enable-decoder=ac3 \
+--enable-decoder=eac3 --enable-decoder=mp2 --enable-decoder=mp2float \
+--enable-decoder=h264 --enable-decoder=mpeg2video --enable-demuxer=mpegts \
+--enable-parser=ac3 --enable-parser=mpegaudio \
+--enable-hwaccel=h264_dxva2 --enable-hwaccel=mpeg2_dxva2 \
+--enable-hwaccel=h264_vaapi --enable-hwaccel=mpeg2_vaapi \
+--enable-hwaccel=h264_vdpau --enable-hwaccel=mpeg2_vdpau && \
+	make -j5 && \
+	make install
+
+RUN wget http://libsdl.org/release/SDL2-2.0.3.tar.gz && \
+	tar xvzf SDL2-2.0.3.tar.gz && \
+	cd SDL2-2.0.3 && \
+	./configure --disable-shared --enable-static && \
+	make -j5 && \
+	make install
+
+#RUN wget https://libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz && \
+#	tar xvzf SDL2-devel-2.0.3-mingw.tar.gz && \
+#	cd SDL2-2.0.3 && \
+#	make native
+
+RUN wget http://www.ferzkopp.net/Software/SDL2_gfx/SDL2_gfx-1.0.0.tar.gz && \
+	tar xvzf SDL2_gfx-1.0.0.tar.gz && \
+	cd SDL2_gfx-1.0.0 && \
+	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --disable-sdltest --disable-mmx && \
+	make -j5 && \
+	make install
+
+
+
+#RUN wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.bz2 && \
+#	tar xvjf freetype-2.5.3.tar.bz2 && \
+#	cd freetype-2.5.3 && \
+#	./configure --prefix=${LIBS_PREFIX} --disable-shared --enable-static --without-png && \
+#	make -j5 && \
+#	make install
+
+
+RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.12.tar.gz && \
+       tar xvzf SDL2_ttf-2.0.12.tar.gz && \
+       cd SDL2_ttf-2.0.12 && \
+       ./configure --disable-shared --enable-static --with-freetype-prefix=${LIBS_PREFIX} && \
+       make -j5 && \
+       make install
+
+#RUN wget https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.12-mingw.tar.gz && \
+#        tar xvzf SDL2_ttf-devel-2.0.12-mingw.tar.gz && \
+#        cd SDL2_ttf-2.0.12 && \
+#        make native
+
+#./configure --with-freetype-prefix=$HOME/lib/freetype2
+
+COPY libbitstream_cpp_datetime.patch /
+RUN wget http://download.videolan.org/pub/videolan/bitstream/1.0/bitstream-1.0.tar.bz2 && \
+	tar xvjf bitstream-1.0.tar.bz2 && \
+	cd bitstream-1.0 && \
+	patch -p0 < /libbitstream_cpp_datetime.patch && \
+	make PREFIX=${LIBS_PREFIX} install
+
+
+#RUN wget http://www.hyperrealm.com/libconfig/libconfig-1.4.9.tar.gz && \
+RUN wget https://src.fedoraproject.org/lookaside/extras/libconfig/libconfig-1.4.9.tar.gz/b6ee0ce2b3ef844bad7cac2803a90634/libconfig-1.4.9.tar.gz && \
+	tar xvzf libconfig-1.4.9.tar.gz && \
+	cd libconfig-1.4.9 && \
+	./configure --prefix=${LIBS_PREFIX} --enable-static --disable-examples && \
+	make -j5 && \
+	make install
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+

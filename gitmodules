@@ -1,0 +1,10 @@
+[submodule "ext/codecparsers"]
+        path = ext/codecparsers
+        url = https://github.com/sreerenjb/gstreamer-codecparsers.git
+[submodule "ext/videoutils"]
+        path = ext/videoutils
+        url = https://github.com/sreerenjb/gstreamer-videoutils.git
+[submodule "ext/libvpx/upstream"]
+        path = ext/libvpx/upstream
+        url = https://chromium.googlesource.com/webm/libvpx
+
