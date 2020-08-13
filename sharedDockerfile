@@ -18,7 +18,8 @@ ENV LIBS_PREFIX=/usr/local
 #RUN	apt-get update && apt-get install -y make wget tar gcc perl musl-dev \
 #	libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev git libva-dev libvdpau-dev yasm libxext-dev cmake
 
-RUN apt-get update && apt-get install -y wget tar gcc git libbitstream-dev libconfig++-dev openjdk-7-jre libssl-dev libdvbcsa-dev cmake yasm  python3
+RUN apt-get update && apt-get install -y wget tar gcc git libbitstream-dev libconfig++-dev libssl-dev libdvbcsa-dev cmake
+# yasm  python3
 #libcurl4-openssl-dev
 
 RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
@@ -55,7 +56,8 @@ RUN wget http://download.videolan.org/pub/videolan/libdvbcsa/1.1.0/libdvbcsa-1.1
 	make -j5 && \
 	make install 
 
-RUN apt-get update && apt-get -y install libglib2.0 libxext-dev
+#RUN apt-get update && apt-get -y install libglib2.0 libxext-dev
+
 #\
 #	libfreetype6-dev libxext-dev
 
@@ -103,10 +105,13 @@ RUN apt-get update && apt-get -y install libglib2.0 libxext-dev
 #	make -j5 && \
 #	make install
 
+
+RUN apt-get install -y autoconf libtool libva-dev mesa-common-dev libgl1-mesa-dev alsa-base alsa-utils libpulse-dev pciutils
+
 RUN wget http://libsdl.org/release/SDL2-2.0.10.tar.gz && \
 	tar xvzf SDL2-2.0.10.tar.gz && \
 	cd SDL2-2.0.10 && \
-	./configure --enable-shared --prefix=${LIBS_PREFIX} && \
+	./configure --enable-shared && \
 	make -j5 && \
 	make install
 
@@ -133,7 +138,7 @@ RUN apt-get install -y libgl1-mesa-dev
 RUN wget http://libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.14.tar.gz && \
        tar xvzf SDL2_ttf-2.0.14.tar.gz && \
        cd SDL2_ttf-2.0.14 && \
-       ./configure --enable-shared --disable-static --prefix=${LIBS_PREFIX} --with-freetype-prefix=${LIBS_PREFIX} && \
+       ./configure --enable-shared --disable-static --with-freetype-prefix=${LIBS_PREFIX} && \
        make -j5 && \
        make install
 
@@ -155,7 +160,7 @@ RUN wget http://download.videolan.org/pub/videolan/bitstream/1.0/bitstream-1.0.t
 #RUN wget http://www.hyperrealm.com/libconfig/libconfig-1.4.9.tar.gz && \
 
 #RUN apt-get install -y libkrb5-dev libldap2-dev
-RUN apt-get install -y libidn11-dev g++
+#RUN apt-get install -y libidn11-dev g++
 #RUN apt-get remove -y libconfig++-dev
 #RUN wget https://src.fedoraproject.org/lookaside/extras/libconfig/libconfig-1.4.9.tar.gz/b6ee0ce2b3ef844bad7cac2803a90634/libconfig-1.4.9.tar.gz && \
 #	tar xvzf libconfig-1.4.9.tar.gz && \
@@ -169,7 +174,7 @@ COPY credentials-helper.sh /
 RUN chmod +x /entrypoint.sh && chmod +x /credentials-helper.sh
 
 
-RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev mesa-common-dev gettext
+#RUN apt-get install -y autoconf libtool autopoint bison flex libva-dev mesa-common-dev gettext
 #RUN git clone https://github.com/GStreamer/gstreamer-vaapi.git && \
 #       cd gstreamer-vaapi && \
 #       git checkout -b cihost 7ac501d0
@@ -253,3 +258,5 @@ COPY gitmodules /gitmodules
 #	make -j5 && \
 #	make install
 
+COPY copylibs.sh /copylibs.sh
+RUN chmod +x /copylibs.sh
