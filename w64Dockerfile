@@ -171,8 +171,8 @@ RUN apt-get install -y pkg-config
 
 COPY libortp_mingw.patch /libortp_mingw.patch
 #COPY avprofile.c /avprofile.c
-#COPY payloadtype.h /payloadtype.h
-#COPY rtpprofile.h /rtpprofile.h
+COPY payloadtype.h /payloadtype.h
+COPY rtpprofile.h /rtpprofile.h
 
 RUN wget http://download.savannah.gnu.org/releases/linphone/ortp/sources/ortp-0.23.0.tar.gz && \
        	tar xvzf ortp-0.23.0.tar.gz && \
