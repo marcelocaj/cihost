@@ -259,4 +259,5 @@ COPY gitmodules /gitmodules
 #	make install
 
 COPY copylibs.sh /copylibs.sh
-RUN chmod +x /copylibs.sh
+COPY wrapper.sh /wrapper.sh
+RUN chmod +x /copylibs.sh && chmod +x /wrapper.sh
