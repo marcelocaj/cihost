@@ -1,0 +1,18 @@
+FROM kremi151/android-ndk:android-29
+
+RUN wget https://gstreamer.freedesktop.org/data/pkg/android/1.18.0/gstreamer-1.0-android-universal-1.18.0.tar.xz 
+RUN ls -l && \
+    mkdir gstreamer && \
+    mv /gstreamer-1.0-android-universal-1.18.0.tar.xz /gstreamer && \
+    ls -l /gstreamer && \
+    cd /gstreamer && tar xvf gstreamer-1.0-android-universal-1.18.0.tar.xz
+
+RUN apk add git file pkgconfig
+
+RUN mkdir -p /code/workspace
+
+COPY entrypoint-as.sh /
+COPY credentials-helper.sh /
+RUN chmod +x /entrypoint-as.sh && chmod +x /credentials-helper.sh
+
+
