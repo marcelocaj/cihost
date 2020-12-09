@@ -4,5 +4,5 @@ cd /code/workspace
 
 
 git config --global credential.helper "/bin/bash /credentials-helper.sh"
-git clone http://localhost:30000/cstc/pstb/common.git
+git clone http://192.168.116.100:30000/cstc/pstb/common.git
 
